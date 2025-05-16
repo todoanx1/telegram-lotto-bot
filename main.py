@@ -1,7 +1,8 @@
 import os
+import time
+import random
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-import random
 
 users = {}
 participants = []
@@ -51,13 +52,22 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bal = users.get(user, 0)
     await update.message.reply_text(f"💰 Số dư của @{user}: {bal} coin")
 
+# Khởi tạo bot
 app = ApplicationBuilder().token(os.environ["TOKEN"]).build()
 
+# Thêm lệnh
 app.add_handler(CommandHandler("deposit", deposit))
 app.add_handler(CommandHandler("withdraw", withdraw))
 app.add_handler(CommandHandler("join", join))
 app.add_handler(CommandHandler("draw", draw))
 app.add_handler(CommandHandler("balance", balance))
 
+# Chạy bot có tự động reconnect và timeout
 print("Bot đang chạy...")
-app.run_polling()
+while True:
+    try:
+        app.run_polling(timeout=60)
+    except Exception as e:
+        print(f"Lỗi: {e}. Đang thử lại sau 5 giây...")
+        time.sleep(5)
+
